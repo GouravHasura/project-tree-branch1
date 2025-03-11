@@ -1,6 +1,6 @@
 # project-tree-branch1
 
-1.  ddn subgraph init branch1
+1.  ddn subgraph init app
 2. ddn subgraph add --subgraph app/subgraph.yaml  --target-supergraph ./supergraph.yaml 
 3. ddn project subgraph create app --project elegant-viper-5629
 
