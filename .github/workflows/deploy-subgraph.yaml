@@ -1,0 +1,51 @@
+name: Deploy Subgraph
+
+on:
+  workflow_dispatch:
+    inputs:
+      SUBGRAPH_NAME:
+        description: 'Enter the Subgraph Name'
+        required: true
+      PROJECT_NAME:
+        description: 'Enter the Project Name'
+        required: true
+
+env:
+  DDN_PAT: ${{ secrets.DDN_PAT }}
+  ENV: ${{ secrets.ENV }}
+  CLOUD_ENV: ${{ secrets.CLOUD_ENV }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Set Environment Variables from .env
+        run: |
+          echo "${{ env.ENV }}" > .env
+          echo "${{ env.CLOUD_ENV }}" > .env.cloud
+
+      - name: Install DDN CLI
+        run: |
+          curl -L https://ddn.sh/install.sh | bash
+
+      - name: Authenticate with DDN
+        run: |
+          ddn auth login --pat $DDN_PAT
+
+      - name: Add Subgraph to Supergraph
+        run: |
+          ddn subgraph add --subgraph ${{ github.event.inputs.SUBGRAPH_NAME }}/subgraph.yaml \
+            --target-supergraph ./supergraph.yaml
+
+      - name: Create Subgraph in Project
+        run: |
+          ddn project subgraph create ${{ github.event.inputs.SUBGRAPH_NAME }} \
+            --project ${{ github.event.inputs.PROJECT_NAME }}
+
+      - name: Build Supergraph
+        run: |
+          ddn supergraph build create
